@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cüzdanım</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E6EEE8;--ink:#14231B;--mut:#5E7266;--panel:#fff;--line:#CBD8CF;--card:#1B2A5C;--cash:#2F7D4F;--in:#C9760F;--out:#C8362F;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1812;--ink:#E7F0EA;--mut:#8EA396;--panel:#18241D;--line:#2A3B30;--card:#3A55B8;--cash:#3FA46A;--in:#E8992B;--out:#EE5A52}}
+:root[data-theme="dark"]{--bg:#0F1812;--ink:#E7F0EA;--mut:#8EA396;--panel:#18241D;--line:#2A3B30;--card:#3A55B8;--cash:#3FA46A;--in:#E8992B;--out:#EE5A52}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.4}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:15px;font-weight:600;color:var(--mut);margin:0}
+.total{font-size:clamp(40px,12vw,68px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:4px 0 18px}
+.total small{font-size:.4em;color:var(--mut);font-weight:600;margin-left:6px}
+.wallets{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.wallets{grid-template-columns:1fr}}
+.w{border-radius:18px;padding:18px;color:var(--on);position:relative;overflow:hidden}
+.w.card{background:var(--card);border-radius:18px 18px 18px 56px}
+.w.cash{background:var(--cash);border-radius:6px;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 14px);outline:2px dashed rgba(255,255,255,.35);outline-offset:-9px}
+.w b{font-weight:600;font-size:15px;opacity:.85}
+.w .bal{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:2px 0 10px}
+.io{display:flex;gap:14px;font-size:13px;opacity:.95;flex-wrap:wrap}
+.cats{margin-top:14px;display:grid;gap:7px}
+.cat{font-size:12.5px}
+.cat div{display:flex;justify-content:space-between}
+.bar{height:6px;background:rgba(255,255,255,.22);border-radius:3px;margin-top:3px}
+.bar i{display:block;height:100%;background:#fff;border-radius:3px;transition:width .4s}
+.empty{font-size:12.5px;opacity:.8;margin-top:12px}
+section.add{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:16px}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:4px;gap:4px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;color:var(--mut);font-weight:600;font-size:14px;font-family:inherit;padding:9px 4px;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+label{font-size:12.5px;color:var(--mut);display:block}
+input,select{width:100%;margin-top:4px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:16px}
+.go{width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:16px;font-family:inherit;color:#fff;cursor:pointer;background:var(--out)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--in);outline-offset:2px}
+h2{font-size:17px;margin:26px 0 8px}
+.tx{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;flex:none}
+.tx .m{flex:1;min-width:0}.tx .m span{display:block;font-size:12.5px;color:var(--mut)}
+.amt{font-weight:800;white-space:nowrap}
+.del{border:0;background:none;color:var(--mut);font-size:18px;cursor:pointer;padding:4px 8px}
+.none{color:var(--mut);font-size:14px;padding:14px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Toplam paran</h1>
+<div class="total" id="total">0<small>₺</small></div>
+<div class="wallets">
+ <div class="w card"><b>Kartım</b><div class="bal" id="cardBal"></div><div class="io" id="cardIo"></div><div class="cats" id="cardCats"></div></div>
+ <div class="w cash"><b>Nakitim</b><div class="bal" id="cashBal"></div><div class="io" id="cashIo"></div><div class="cats" id="cashCats"></div></div>
+</div>
+
+<section class="add">
+ <div class="seg" id="seg">
+  <button data-t="out" class="on">Harcadım</button>
+  <button data-t="in">Para geldi</button>
+  <button data-t="move">Aktar</button>
+ </div>
+ <div class="row">
+  <label><span id="wl">Nereden</span><select id="w"><option value="card">Kart</option><option value="cash">Nakit</option></select></label>
+  <label>Tutar (₺)<input id="a" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00"></label>
+ </div>
+ <div class="row">
+  <label id="catWrap">Kategori<select id="c"></select></label>
+  <label>Not<input id="n" type="text" placeholder="isteğe bağlı"></label>
+ </div>
+ <button class="go" id="go">Harcamayı kaydet</button>
+</section>
+
+<h2>Hareketler</h2>
+<div id="list"></div>
+</main>
+<script>
+const EXP=['Yemek','Market','Ulaşım','Fatura','Eğlence','Giyim','Sağlık','Diğer'];
+const INC=['Maaş','Harçlık','Hediye','Başlangıç bakiyesi','Diğer'];
+const WN={card:'Kart',cash:'Nakit'};
+let tx=[],type='out';
+try{tx=JSON.parse(localStorage.getItem('cuzdan')||'[]')}catch(e){tx=[]}
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺';
+const save=()=>{try{localStorage.setItem('cuzdan',JSON.stringify(tx))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function stats(w){
+ let bal=0,inc=0,out=0,cats={};
+ tx.forEach(x=>{
+  const other=x.w==='card'?'cash':'card';
+  if(x.t==='in'&&x.w===w){bal+=x.a;inc+=x.a}
+  else if(x.t==='out'&&x.w===w){bal-=x.a;out+=x.a;cats[x.c]=(cats[x.c]||0)+x.a}
+  else if(x.t==='move'){if(x.w===w)bal-=x.a;else if(other===w)bal+=x.a}
+ });
+ return {bal,inc,out,cats};
+}
+function paint(w){
+ const s=stats(w);
+ $(w+'Bal').textContent=fmt(s.bal);
+ $(w+'Io').innerHTML='<span>↓ Gelen '+fmt(s.inc)+'</span><span>↑ Harcanan '+fmt(s.out)+'</span>';
+ const e=Object.entries(s.cats).sort((a,b)=>b[1]-a[1]);
+ $(w+'Cats').innerHTML=e.length?e.map(([k,v])=>'<div class="cat"><div><span>'+esc(k)+'</span><span>'+fmt(v)+'</span></div><div class="bar"><i style="width:'+(v/s.out*100)+'%"></i></div></div>').join(''):'<div class="empty">Henüz harcama yok.</div>';
+ return s.bal;
+}
+function render(){
+ const t=paint('card')+paint('cash');
+ $('total').innerHTML=fmt(t).replace(' ₺','')+'<small>₺</small>';
+ const L=$('list');
+ if(!tx.length){L.innerHTML='<div class="none">Önce "Para geldi" ile kartındaki ve cebindeki parayı ekle, sonra harcamalarını gir.</div>';return}
+ L.innerHTML=[...tx].reverse().map(x=>{
+  const col=x.t==='out'?'var(--out)':x.t==='in'?'var(--in)':'var(--mut)';
+  const sign=x.t==='out'?'−':x.t==='in'?'+':'⇄';
+  const title=x.t==='move'?WN[x.w]+' → '+(x.w==='card'?'Nakit':'Kart'):x.c;
+  return '<div class="tx"><div class="dot" style="background:'+col+'">'+sign+'</div><div class="m"><b>'+esc(title)+'</b><span>'+WN[x.w]+' · '+x.d+(x.n?' · '+esc(x.n):'')+'</span></div><div class="amt" style="color:'+col+'">'+sign+' '+fmt(x.a)+'</div><button class="del" data-id="'+x.id+'" aria-label="Sil">×</button></div>';
+ }).join('');
+}
+function setType(t){
+ type=t;
+ document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ $('wl').textContent=t==='out'?'Nereden':t==='in'?'Nereye':'Nereden (diğerine geçer)';
+ $('catWrap').style.display=t==='move'?'none':'block';
+ $('c').innerHTML=(t==='in'?INC:EXP).map(x=>'<option>'+x+'</option>').join('');
+ const g=$('go');g.textContent=t==='out'?'Harcamayı kaydet':t==='in'?'Geliri kaydet':'Aktarımı kaydet';
+ g.style.background=t==='out'?'var(--out)':t==='in'?'var(--in)':'var(--card)';
+}
+$('seg').onclick=e=>{const b=e.target.closest('button');if(b)setType(b.dataset.t)};
+$('go').onclick=()=>{
+ const a=parseFloat(String($('a').value).replace(',','.'));
+ if(!(a>0)){$('a').focus();return}
+ tx.push({id:Date.now(),t:type,w:$('w').value,a,c:type==='move'?'':$('c').value,n:$('n').value.trim(),d:new Date().toLocaleDateString('tr-TR',{day:'numeric',month:'short'})});
+ $('a').value='';$('n').value='';save();render();
+};
+$('list').onclick=e=>{const b=e.target.closest('.del');if(!b)return;tx=tx.filter(x=>String(x.id)!==b.dataset.id);save();render()};
+setType('out');render();
+</script>
+</body>
+</html>
